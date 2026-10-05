@@ -72,11 +72,33 @@ const RealTempleGLBLoader: React.FC<RealTempleGLBLoaderProps> = ({ url }) => {
     gltf.scene.traverse((node) => {
       if ((node as THREE.Mesh).isMesh) {
         const mesh = node as THREE.Mesh
-        mesh.castShadow = true
-        mesh.receiveShadow = true
-
         const name = (mesh.name || '').toLowerCase()
         const matName = (mesh.material && !Array.isArray(mesh.material) ? mesh.material.name : '').toLowerCase()
+
+        // Architectural Wonder of Brihadisvara Temple (Thanjavur Periya Kovil):
+        // The shadow of the monumental 66m Sri Vimana / Sikhara never falls on the open courtyard ground.
+        // Master Chola architects engineered the stepped pyramidal tiers and wide Upapitha base
+        // so all shadows are contained within the temple structure itself.
+        // Courtyard paving, lawn, and ground meshes NEVER receive or cast shadows.
+        const isGroundOrCourtyard =
+          name.includes('courtyard') ||
+          name.includes('lawn') ||
+          name.includes('ground') ||
+          name.includes('floor') ||
+          name.includes('paving') ||
+          name.includes('terrain') ||
+          matName.includes('courtyard') ||
+          matName.includes('paving') ||
+          matName.includes('ground') ||
+          matName.includes('lawn')
+
+        if (isGroundOrCourtyard) {
+          mesh.castShadow = false
+          mesh.receiveShadow = false
+        } else {
+          mesh.castShadow = true
+          mesh.receiveShadow = true
+        }
 
         if (name.includes('goldfinial') || matName.includes('gold')) {
           // Gilded Copper / Gold Kalasam Stupis

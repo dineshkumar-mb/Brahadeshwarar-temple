@@ -19,10 +19,15 @@ export const HandTracker: React.FC = () => {
   const isDetected = useExperienceStore((s) => s.isHandDetected)
   const gesture = useExperienceStore((s) => s.detectedGesture)
   const handPos = useExperienceStore((s) => s.handPosition)
+  const pinchDist = useExperienceStore((s) => s.pinchDistance)
   const isPaused = useExperienceStore((s) => s.isPaused)
   const isLocked = useExperienceStore((s) => s.isLocked)
 
   if (!isEnabled || !isDetected) return null
+
+  // Lateral steering indicator
+  const isSteeringRight = handPos.x > 0.62
+  const isSteeringLeft = handPos.x < 0.38
 
   // Map active gesture to on-screen floating cue
   const getFloatingCue = () => {
@@ -74,7 +79,7 @@ export const HandTracker: React.FC = () => {
         }
       case 'PINCH':
         return {
-          label: 'FOCUS MODE',
+          label: 'PINCH FOCUS',
           icon: <Focus className="w-4 h-4 text-sky-400" />,
           ringColor: 'border-sky-400/90 shadow-[0_0_25px_rgba(56,189,248,0.5)]',
           badgeBg: 'bg-sky-950/85 border-sky-400/60 text-sky-200',
@@ -110,12 +115,28 @@ export const HandTracker: React.FC = () => {
       case 'SWIPE_LEFT':
       case 'SWIPE_RIGHT':
         return {
-          label: 'SECTION JUMP',
+          label: 'CHAPTER JUMP',
           icon: <Sliders className="w-4 h-4 text-purple-400" />,
           ringColor: 'border-purple-400/80',
           badgeBg: 'bg-purple-950/80 border-purple-400/50 text-purple-300',
         }
       default:
+        if (isSteeringRight) {
+          return {
+            label: 'STEERING RIGHT',
+            icon: <RotateCw className="w-3.5 h-3.5 text-amber-300" />,
+            ringColor: 'border-amber-400/80',
+            badgeBg: 'bg-amber-950/80 border-amber-500/50 text-amber-300',
+          }
+        }
+        if (isSteeringLeft) {
+          return {
+            label: 'STEERING LEFT',
+            icon: <RotateCcw className="w-3.5 h-3.5 text-amber-300" />,
+            ringColor: 'border-amber-400/80',
+            badgeBg: 'bg-amber-950/80 border-amber-500/50 text-amber-300',
+          }
+        }
         return {
           label: 'HAND READY',
           icon: <Hand className="w-3.5 h-3.5 text-stone-400" />,
@@ -126,6 +147,9 @@ export const HandTracker: React.FC = () => {
   }
 
   const cue = getFloatingCue()
+
+  // Calculate dynamic pinch visual ring size
+  const pinchRingRadius = Math.max(12, Math.min(32, (pinchDist || 0.15) * 160))
 
   return (
     <div
@@ -140,23 +164,33 @@ export const HandTracker: React.FC = () => {
       <div className="relative flex items-center justify-center">
         {/* Outer reticle halo */}
         <div
-          className={`w-14 h-14 rounded-full border-2 transition-all duration-200 flex items-center justify-center ${cue.ringColor} ${
+          className={`w-16 h-16 rounded-full border-2 transition-all duration-200 flex items-center justify-center ${cue.ringColor} ${
             gesture.startsWith('PINCH')
-              ? 'scale-75'
+              ? 'scale-80'
               : gesture === 'OPEN_PALM'
               ? 'scale-110'
               : 'scale-95'
           }`}
         >
           {/* Subtle crosshairs */}
-          <div className="absolute w-2 h-0.5 bg-amber-400/60 left-0" />
-          <div className="absolute w-2 h-0.5 bg-amber-400/60 right-0" />
-          <div className="absolute h-2 w-0.5 bg-amber-400/60 top-0" />
-          <div className="absolute h-2 w-0.5 bg-amber-400/60 bottom-0" />
+          <div className="absolute w-2.5 h-0.5 bg-amber-400/70 left-0" />
+          <div className="absolute w-2.5 h-0.5 bg-amber-400/70 right-0" />
+          <div className="absolute h-2.5 w-0.5 bg-amber-400/70 top-0" />
+          <div className="absolute h-2.5 w-0.5 bg-amber-400/70 bottom-0" />
+
+          {/* Dynamic Pinch Proximity Ring */}
+          <div
+            className="absolute rounded-full border border-sky-400/60 pointer-events-none transition-all duration-75"
+            style={{
+              width: `${pinchRingRadius * 2}px`,
+              height: `${pinchRingRadius * 2}px`,
+              opacity: gesture.startsWith('PINCH') ? 1 : 0.25,
+            }}
+          />
 
           {/* Central tracking core */}
           <div
-            className={`w-3 h-3 rounded-full transition-colors duration-150 ${
+            className={`w-3.5 h-3.5 rounded-full transition-colors duration-150 ${
               gesture.startsWith('PINCH')
                 ? 'bg-sky-400 shadow-[0_0_12px_#38bdf8]'
                 : isLocked
@@ -167,9 +201,9 @@ export const HandTracker: React.FC = () => {
         </div>
 
         {/* Floating gesture badge above reticle when action is active */}
-        {gesture !== 'NONE' && (
+        {(gesture !== 'NONE' || isSteeringLeft || isSteeringRight) && (
           <div
-            className={`absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap flex items-center gap-1.5 px-2.5 py-1 rounded-full border backdrop-blur-md font-mono text-[10px] font-semibold tracking-wider shadow-xl transition-all duration-150 ${cue.badgeBg}`}
+            className={`absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap flex items-center gap-1.5 px-2.5 py-1 rounded-full border backdrop-blur-md font-mono text-[10px] font-semibold tracking-wider shadow-xl transition-all duration-150 ${cue.badgeBg}`}
           >
             {cue.icon}
             <span>{cue.label}</span>

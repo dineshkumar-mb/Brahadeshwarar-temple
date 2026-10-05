@@ -361,70 +361,77 @@ export const GestureController: React.FC = () => {
 
   const handleGestureInput = (rec: ReturnType<GestureRecognizer['recognize']>) => {
     const store = useExperienceStore.getState()
+
+    // 1. Closed Fist: Instant pause / freeze lock
+    if (rec.isFist) {
+      if (!store.isLocked) {
+        store.setIsLocked(true)
+      }
+      return
+    } else if (store.isLocked) {
+      store.setIsLocked(false)
+    }
+
+    if (store.isPaused) return
+
+    // 2. Swipes: Chapter transitions or Gallery navigation
+    if (rec.gesture === 'SWIPE_LEFT') {
+      if (store.activePhotoModal) {
+        store.navigatePhotoModal(1)
+      } else {
+        store.jumpToSection(Math.min(7, store.currentSection + 1))
+      }
+      return
+    }
+    if (rec.gesture === 'SWIPE_RIGHT') {
+      if (store.activePhotoModal) {
+        store.navigatePhotoModal(-1)
+      } else {
+        store.jumpToSection(Math.max(0, store.currentSection - 1))
+      }
+      return
+    }
+
+    // 3. Pinch: Continuous Zoom or Hotspot Inspection
+    if (rec.isPinching) {
+      // Continuous vertical motion while pinched directly zooms camera
+      if (Math.abs(rec.deltaY) > 0.001) {
+        inputController.addZoom(rec.deltaY * 2.4, 'hand')
+      } else if (!store.isFocusMode && store.currentSection >= 4) {
+        store.activateHotspot('vimana')
+      }
+      return
+    }
+
+    // 4. Open Palm: Steady hold to dampen residual momentum
+    if (rec.isOpenPalm) {
+      return
+    }
+
+    // 5. Continuous Dual-Axis Proportional Steering
     const sensitivity = GESTURE_CONFIG.gestureSensitivity
 
-    switch (rec.gesture) {
-      case 'MOVE_UP':
-        // Hand moving upward: Increase cinematic scene progress
-        inputController.addProgress(rec.deltaY * sensitivity, 'hand')
-        break
+    // Vertical displacement -> Sacred cinematic spline progress
+    if (Math.abs(rec.deltaY) > 0) {
+      inputController.addProgress(rec.deltaY * sensitivity, 'hand')
+    }
 
-      case 'MOVE_DOWN':
-        // Hand moving downward: Decrease cinematic scene progress
-        inputController.addProgress(rec.deltaY * sensitivity, 'hand')
-        break
+    // Horizontal displacement -> Camera orbit angle
+    let totalOrbitAngle = rec.deltaX * 1.5
 
-      case 'MOVE_LEFT':
-      case 'MOVE_RIGHT':
-        // Hand moving left/right: Rotate/orbit the temple camera
-        inputController.addOrbit(rec.deltaX * 1.6, 0, 'hand')
-        break
+    // Virtual Steering Spring:
+    // If the hand is held in the lateral regions (> 0.62 or < 0.38),
+    // apply a silky continuous angular rate so the user does not have to wave repeatedly
+    if (rec.handCenter.x > 0.62) {
+      const lateralRatio = Math.min(1.0, (rec.handCenter.x - 0.62) / 0.25)
+      totalOrbitAngle += lateralRatio * 0.015
+    } else if (rec.handCenter.x < 0.38) {
+      const lateralRatio = Math.min(1.0, (0.38 - rec.handCenter.x) / 0.25)
+      totalOrbitAngle -= lateralRatio * 0.015
+    }
 
-      case 'PINCH':
-        // Static pinch: Activate focus mode if not already active
-        if (!store.isFocusMode && store.currentSection >= 4) {
-          // If in hotspot section, activate default hotspot
-          store.activateHotspot('vimana')
-        }
-        break
-
-      case 'PINCH_ZOOM_IN':
-        // Pinch + upward: Zoom toward selected element
-        inputController.addZoom(0.038, 'hand')
-        break
-
-      case 'PINCH_ZOOM_OUT':
-        // Pinch + downward: Zoom back out
-        inputController.addZoom(-0.038, 'hand')
-        break
-
-      case 'OPEN_PALM':
-        // Open palm: Steady hold position (keeps camera steady)
-        break
-
-      case 'CLOSED_FIST':
-        // Closed fist: Lock interaction
-        if (!store.isLocked) {
-          store.setIsLocked(true)
-        }
-        break
-
-      case 'SWIPE_LEFT':
-        // Fast horizontal swipe left: navigate to next section
-        store.jumpToSection(Math.min(7, store.currentSection + 1))
-        break
-
-      case 'SWIPE_RIGHT':
-        // Fast horizontal swipe right: navigate to previous section
-        store.jumpToSection(Math.max(0, store.currentSection - 1))
-        break
-
-      default:
-        // When fist is released, unlock
-        if (store.isLocked) {
-          store.setIsLocked(false)
-        }
-        break
+    if (Math.abs(totalOrbitAngle) > 0.0001) {
+      inputController.addOrbit(totalOrbitAngle, 0, 'hand')
     }
   }
 

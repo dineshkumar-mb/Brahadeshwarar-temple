@@ -53,16 +53,22 @@ export class GestureRecognizer {
       }
     }
 
-    // 1. Calculate Hand Center (midpoint between Wrist and Middle MCP)
-    // Mirror X coordinate so hand tracking naturally matches the user's mirror view:
+    // 1. Calculate Hand Center (4-point anatomical palm centroid: Wrist, Index MCP, Middle MCP, Pinky MCP)
+    // This creates an invariant palm center that does not oscillate when fingers flex or point.
+    // Mirror X coordinate so hand tracking naturally matches user's selfie view:
     // moving hand right -> X increases, moving hand left -> X decreases.
     const wrist = landmarks[0]
+    const indexMcp = landmarks[5]
     const middleMcp = landmarks[9]
-    const rawCenterX = (wrist.x + middleMcp.x) * 0.5
+    const pinkyMcp = landmarks[17]
+    const rawCenterX = (wrist.x + indexMcp.x + middleMcp.x + pinkyMcp.x) * 0.25
+    const rawCenterY = (wrist.y + indexMcp.y + middleMcp.y + pinkyMcp.y) * 0.25
+    const rawCenterZ = ((wrist.z || 0) + (indexMcp.z || 0) + (middleMcp.z || 0) + (pinkyMcp.z || 0)) * 0.25
+
     const handCenter: Point3D = {
       x: 1.0 - rawCenterX,
-      y: (wrist.y + middleMcp.y) * 0.5,
-      z: (wrist.z + middleMcp.z) * 0.5,
+      y: rawCenterY,
+      z: rawCenterZ,
     }
 
     // 2. Hand Scale (reference distance for invariant thresholding)

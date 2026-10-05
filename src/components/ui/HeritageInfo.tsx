@@ -53,12 +53,12 @@ export const HeritageInfo: React.FC = () => {
     {
       title: 'SRI VIMANA',
       subtitle: 'DAKSHINA MERU',
-      meta: '216 FT (66M) MONUMENTAL TOWER',
+      meta: 'ARCHITECTURAL OPTICAL MARVEL • NOON SHADOW',
       photoLabel: 'View Vimana Photo',
       imageRef: '/images/temple/right-sideview.webp',
       tamilTitle: 'ஸ்ரீ விமானம் • தென்திசை மேரு',
       details:
-        'Towering 13 diminishing talas of interlocking granite rising at a steep 75-degree angle, crowned with an 80-tonne monolithic dome.',
+        'Towering 13 diminishing talas rising 66m without mortar. At solar noon (May–July), the tapering spire casts its shadow neatly within the massive Upapitha base footprint. Born from architect Perunthachan’s immortal promise to Emperor Rajaraja: "Even its shadow will not fall, Raja!"',
       gallery: [
         '/images/temple/right-sideview.webp',
         '/images/temple/side-view.webp',

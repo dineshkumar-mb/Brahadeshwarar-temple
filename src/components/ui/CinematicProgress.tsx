@@ -3,6 +3,7 @@ import {
   useExperienceStore,
   SECTION_MILESTONES,
 } from '../../state/experienceStore'
+import { ARCHAEOLOGICAL_GALLERY } from '../../data/templeData'
 import {
   Hand,
   Mouse,
@@ -195,23 +196,15 @@ export const CinematicProgress: React.FC = () => {
             <button
               type="button"
               onClick={() => {
+                const first = ARCHAEOLOGICAL_GALLERY[0]
                 openPhotoModal({
-                  title: 'Peruvudaiyar Maha Lingam & Sacred Sanctum',
-                  tamilTitle: 'பெரியவுடையார் மகாலிங்கம்',
-                  imageSrc: '/images/lingam.jpg',
-                  caption: 'Enshrined within the sacred double-walled Garbhagriha under the soaring 66-meter Sri Vimana.',
-                  details:
-                    'Concurring with classical Agama shastras, the 13-foot monolithic black granite Lingam rests on a 54-foot circumference Avudaiyar, attended by multi-tiered bronze Aarti deepam lamps in continuous worship since 1010 CE.',
-                  galleryImages: [
-                    '/images/lingam.jpg',
-                    '/images/temple/entrance.jpg',
-                    '/images/temple/nandhi-sideview.jpg',
-                    '/images/temple/nandhi-backsideview.jpg',
-                    '/images/temple/side-view.webp',
-                    '/images/temple/right-sideview.webp',
-                    '/images/temple/gopuram-sideview.webp',
-                    '/images/temple/gopuram-backsideview.webp',
-                  ],
+                  title: first.title,
+                  tamilTitle: first.tamilTitle,
+                  category: first.category,
+                  imageSrc: first.imageSrc,
+                  caption: first.caption,
+                  details: first.details,
+                  galleryImages: ARCHAEOLOGICAL_GALLERY.map((p) => p.imageSrc),
                 })
               }}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-stone-900/70 hover:bg-stone-800 border border-stone-800 text-stone-300 hover:text-amber-300 text-xs font-mono tracking-wider transition-all cursor-pointer"

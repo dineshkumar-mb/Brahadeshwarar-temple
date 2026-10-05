@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react'
 import { useExperienceStore } from '../../state/experienceStore'
 import { inputController } from '../input/InputController'
 import { templeAudio } from '../../audio/TempleAudio'
+import { ARCHAEOLOGICAL_GALLERY } from '../../data/templeData'
 import {
   Mic,
   MicOff,
@@ -33,6 +34,9 @@ export const VoiceController: React.FC = () => {
 
   const recognitionRef = useRef<SpeechRecognitionType | null>(null)
   const noticeTimerRef = useRef<number | null>(null)
+  const lastExecutedCommandTimeRef = useRef<number>(0)
+  const lastMatchedKeyRef = useRef<string>('')
+  const restartTimeoutRef = useRef<number | null>(null)
 
   const showActionFeedback = useCallback((notice: string) => {
     setLastActionNotice(notice)
@@ -44,80 +48,279 @@ export const VoiceController: React.FC = () => {
     }, 3200)
   }, [])
 
-  // Process incoming speech text
-  const processVoiceCommand = useCallback((rawText: string) => {
+  // Process incoming speech text with low-latency interim & final execution
+  const processVoiceCommand = useCallback((rawText: string, isFinal = false) => {
     const text = rawText.toLowerCase().trim()
     setVoiceTranscript(text)
     const store = useExperienceStore.getState()
+    const now = performance.now()
 
-    // 1. FORWARD / ADVANCE
+    // Helper to debounce command execution across continuous interim transcripts
+    const tryExecute = (key: string, cooldownMs: number, action: () => void) => {
+      if (now - lastExecutedCommandTimeRef.current < cooldownMs && lastMatchedKeyRef.current === key) {
+        return true
+      }
+      lastExecutedCommandTimeRef.current = now
+      lastMatchedKeyRef.current = key
+      action()
+      return true
+    }
+
+    // 1. SKY ILLUMINATION / DAY & NIGHT
+    if (
+      text.includes('day') ||
+      text.includes('sun') ||
+      text.includes('morning') ||
+      text.includes('sunlight')
+    ) {
+      return tryExecute('day', 1200, () => {
+        store.setTimeOfDay('day')
+        templeAudio.playTempleBell()
+        setLastVoiceCommand('Morning Sunlight')
+        showActionFeedback('✓ SKY ILLUMINATION: 5400K MORNING SUNLIGHT')
+      })
+    }
+
+    if (
+      text.includes('night') ||
+      text.includes('moon') ||
+      text.includes('evening') ||
+      text.includes('moonlight') ||
+      text.includes('dusk')
+    ) {
+      return tryExecute('night', 1200, () => {
+        store.setTimeOfDay('night')
+        templeAudio.playTempleBell()
+        setLastVoiceCommand('Moonlit Serenity')
+        showActionFeedback('✓ SKY ILLUMINATION: SILVERY MOONLIGHT & STARS')
+      })
+    }
+
+    if (text.includes('toggle lighting') || text.includes('toggle sky') || text.includes('switch light')) {
+      return tryExecute('toggle-light', 1000, () => {
+        store.toggleTimeOfDay()
+        templeAudio.playTempleBell()
+        setLastVoiceCommand('Toggle Sky Lighting')
+        showActionFeedback(`✓ SKY TOGGLED TO: ${store.timeOfDay === 'day' ? 'NIGHT' : 'DAY'}`)
+      })
+    }
+
+    // 2. HAND TRACKING MOTION CONTROL
+    if (
+      (text.includes('hand') || text.includes('gesture')) &&
+      (text.includes('start') || text.includes('enable') || text.includes('on') || text.includes('track'))
+    ) {
+      return tryExecute('hand-on', 1500, () => {
+        store.setHandTrackingEnabled(true)
+        templeAudio.playTempleBell()
+        setLastVoiceCommand('Hand Tracking Enabled')
+        showActionFeedback('✓ HAND MOTION TRACKING ACTIVATED')
+      })
+    }
+
+    if (
+      (text.includes('hand') || text.includes('gesture')) &&
+      (text.includes('stop') || text.includes('disable') || text.includes('off') || text.includes('turn off'))
+    ) {
+      return tryExecute('hand-off', 1500, () => {
+        store.setHandTrackingEnabled(false)
+        templeAudio.playTempleBell()
+        setLastVoiceCommand('Hand Tracking Disabled')
+        showActionFeedback('✓ HAND MOTION TRACKING DISABLED')
+      })
+    }
+
+    // 3. ARCHAEOLOGICAL GALLERY ARCHIVE & NAVIGATION
+    if (text.includes('next photo') || text.includes('next image') || text.includes('next picture')) {
+      return tryExecute('next-photo', 450, () => {
+        store.navigatePhotoModal(1)
+        templeAudio.playTempleBell()
+        setLastVoiceCommand('Next Photo')
+        showActionFeedback('✓ GALLERY: ADVANCED TO NEXT PHOTO')
+      })
+    }
+
+    if (
+      text.includes('previous photo') ||
+      text.includes('prev photo') ||
+      text.includes('previous image') ||
+      text.includes('prev image')
+    ) {
+      return tryExecute('prev-photo', 450, () => {
+        store.navigatePhotoModal(-1)
+        templeAudio.playTempleBell()
+        setLastVoiceCommand('Previous Photo')
+        showActionFeedback('✓ GALLERY: RETREATED TO PREVIOUS PHOTO')
+      })
+    }
+
+    if (text.includes('gallery') || text.includes('photo') || text.includes('archive') || text.includes('picture')) {
+      return tryExecute('gallery-open', 1500, () => {
+        store.openPhotoModal({
+          title: 'Brihadisvara Archaeological Photo Archive',
+          tamilTitle: 'பெருவுடையார் கோயில் தொல்பொருள் புகைப்படத் தொகுப்பு',
+          category: 'Archaeological Archive',
+          imageSrc: '/images/lingam.jpg',
+          caption: 'Curated 1000-year Chola architectural photography capturing the sanctum, vimana, monolithic Nandi, and granite epigraphy.',
+          details: 'Comprehensive photographic survey of Rajaraja Chola I’s masterwork (1010 CE), recognized as a UNESCO World Heritage monument.',
+          galleryImages: ARCHAEOLOGICAL_GALLERY.map((p) => p.imageSrc),
+        })
+        templeAudio.playTempleBell()
+        setLastVoiceCommand('Archaeological Archive')
+        showActionFeedback('✓ OPENED 10-IMAGE ARCHAEOLOGICAL ARCHIVE')
+      })
+    }
+
+    // 4. FULLSCREEN TOGGLE
+    if (text.includes('full screen') || text.includes('fullscreen')) {
+      return tryExecute('fullscreen', 1500, () => {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen?.().catch(() => {})
+          showActionFeedback('✓ ENTERED FULLSCREEN MODE')
+        } else {
+          document.exitFullscreen?.().catch(() => {})
+          showActionFeedback('✓ EXITED FULLSCREEN MODE')
+        }
+        templeAudio.playTempleBell()
+        setLastVoiceCommand('Fullscreen')
+      })
+    }
+
+    // 5. HOTSPOT INSPECTION
+    if (text.includes('kumbam') || text.includes('kalasam') || text.includes('apex') || text.includes('dome')) {
+      return tryExecute('hotspot-kumbam', 1200, () => {
+        store.activateHotspot('kumbam')
+        templeAudio.playTempleBell()
+        setLastVoiceCommand('Golden Kumbam')
+        showActionFeedback('✓ INSPECTING: 81-Ton Monolithic Kumbam & Golden Stupi')
+      })
+    }
+
+    if (text.includes('vimana') || text.includes('tower') || text.includes('shikhara')) {
+      return tryExecute('hotspot-vimana', 1200, () => {
+        store.activateHotspot('vimana')
+        templeAudio.playTempleBell()
+        setLastVoiceCommand('Sri Vimana')
+        showActionFeedback('✓ INSPECTING: Soaring 66m Sri Vimana')
+      })
+    }
+
+    if (text.includes('inscription') || text.includes('epigraphy') || text.includes('tamil')) {
+      return tryExecute('hotspot-inscriptions', 1200, () => {
+        store.activateHotspot('inscriptions')
+        templeAudio.playTempleBell()
+        setLastVoiceCommand('Tamil Epigraphy')
+        showActionFeedback('✓ INSPECTING: Rajaraja Chola Old Tamil Inscriptions')
+      })
+    }
+
+    if (text.includes('mandapa') || text.includes('hall') || text.includes('pillared')) {
+      return tryExecute('hotspot-mandapa', 1200, () => {
+        store.activateHotspot('mandapa')
+        templeAudio.playTempleBell()
+        setLastVoiceCommand('Maha Mandapa')
+        showActionFeedback('✓ INSPECTING: Pillared Maha Mandapa')
+      })
+    }
+
+    if (text.includes('kodimaram') || text.includes('flag') || text.includes('bali') || text.includes('stambha')) {
+      return tryExecute('hotspot-kodimaram', 1200, () => {
+        store.activateHotspot('kodimaram')
+        templeAudio.playTempleBell()
+        setLastVoiceCommand('Kodimaram Flag Mast')
+        showActionFeedback('✓ FOCUSING: Kodimaram & Bali Peetham')
+      })
+    }
+
+    if (text.includes('nandi') || text.includes('bull')) {
+      return tryExecute('hotspot-nandi', 1200, () => {
+        store.activateHotspot('nandi')
+        templeAudio.playTempleBell()
+        setLastVoiceCommand('Monolithic Nandi')
+        showActionFeedback('✓ INSPECTING: 20-Ton Monolithic Granite Nandi')
+      })
+    }
+
+    if (text.includes('sanctum') || text.includes('lingam') || text.includes('garbhagriha')) {
+      return tryExecute('hotspot-lingam', 1200, () => {
+        store.activateHotspot('lingam')
+        templeAudio.playTempleBell()
+        setLastVoiceCommand('Maha Lingam')
+        showActionFeedback('✓ INSPECTING: Peruvudaiyar Maha Lingam')
+      })
+    }
+
+    // 6. FORWARD / ADVANCE
     if (
       text.includes('forward') ||
       text.includes('ahead') ||
       text.includes('advance') ||
-      text.includes('next') ||
       text.includes('go on')
     ) {
-      inputController.addProgress(0.065, 'mouse')
-      templeAudio.playTempleBell()
-      setLastVoiceCommand('Forward')
-      showActionFeedback('✓ ADVANCED FORWARD (+6%)')
-      return
+      return tryExecute('forward', 350, () => {
+        inputController.addProgress(0.065, 'mouse')
+        templeAudio.playTempleBell()
+        setLastVoiceCommand('Forward')
+        showActionFeedback('✓ ADVANCED FORWARD (+6%)')
+      })
     }
 
-    // 2. BACKWARD / RETREAT
+    // 7. BACKWARD / RETREAT
     if (
       text.includes('backward') ||
       text.includes('back') ||
       text.includes('retreat') ||
-      text.includes('reverse') ||
-      text.includes('previous')
+      text.includes('reverse')
     ) {
-      inputController.addProgress(-0.065, 'mouse')
-      templeAudio.playTempleBell()
-      setLastVoiceCommand('Backward')
-      showActionFeedback('✓ RETREATED BACKWARD (-6%)')
-      return
+      return tryExecute('backward', 350, () => {
+        inputController.addProgress(-0.065, 'mouse')
+        templeAudio.playTempleBell()
+        setLastVoiceCommand('Backward')
+        showActionFeedback('✓ RETREATED BACKWARD (-6%)')
+      })
     }
 
-    // 3. ROTATE RIGHT / ORBIT RIGHT
+    // 8. ROTATE RIGHT / ORBIT RIGHT
     if (
       text.includes('rotate right') ||
       text.includes('turn right') ||
       text.includes('orbit right') ||
       text.includes('spin right')
     ) {
-      inputController.addOrbit(0.28, 0, 'mouse')
-      templeAudio.playTempleBell()
-      setLastVoiceCommand('Rotate Right')
-      showActionFeedback('✓ ORBITED RIGHT (+16°)')
-      return
+      return tryExecute('rotate-right', 350, () => {
+        inputController.addOrbit(0.28, 0, 'mouse')
+        templeAudio.playTempleBell()
+        setLastVoiceCommand('Rotate Right')
+        showActionFeedback('✓ ORBITED RIGHT (+16°)')
+      })
     }
 
-    // 4. ROTATE LEFT / ORBIT LEFT
+    // 9. ROTATE LEFT / ORBIT LEFT
     if (
       text.includes('rotate left') ||
       text.includes('turn left') ||
       text.includes('orbit left') ||
       text.includes('spin left')
     ) {
-      inputController.addOrbit(-0.28, 0, 'mouse')
-      templeAudio.playTempleBell()
-      setLastVoiceCommand('Rotate Left')
-      showActionFeedback('✓ ORBITED LEFT (-16°)')
-      return
+      return tryExecute('rotate-left', 350, () => {
+        inputController.addOrbit(-0.28, 0, 'mouse')
+        templeAudio.playTempleBell()
+        setLastVoiceCommand('Rotate Left')
+        showActionFeedback('✓ ORBITED LEFT (-16°)')
+      })
     }
 
-    // 5. ROTATE / ORBIT (General rotation)
+    // 10. ROTATE / ORBIT (General rotation)
     if (text.includes('rotate') || text.includes('orbit') || text.includes('turn') || text.includes('spin')) {
-      inputController.addOrbit(0.24, 0, 'mouse')
-      templeAudio.playTempleBell()
-      setLastVoiceCommand('Rotate')
-      showActionFeedback('✓ ROTATING CAMERA (+14°)')
-      return
+      return tryExecute('rotate', 350, () => {
+        inputController.addOrbit(0.24, 0, 'mouse')
+        templeAudio.playTempleBell()
+        setLastVoiceCommand('Rotate')
+        showActionFeedback('✓ ROTATING CAMERA (+14°)')
+      })
     }
 
-    // 6. RESET VIEW / ROTATION
+    // 11. RESET VIEW / ROTATION
     if (
       text.includes('reset view') ||
       text.includes('reset rotation') ||
@@ -125,208 +328,158 @@ export const VoiceController: React.FC = () => {
       text.includes('reset camera') ||
       text.includes('face front')
     ) {
-      inputController.resetOrbit()
-      templeAudio.playTempleBell()
-      setLastVoiceCommand('Reset View')
-      showActionFeedback('✓ RESET CAMERA ROTATION')
-      return
+      return tryExecute('reset-view', 800, () => {
+        inputController.resetOrbit()
+        templeAudio.playTempleBell()
+        setLastVoiceCommand('Reset View')
+        showActionFeedback('✓ RESET CAMERA ROTATION')
+      })
     }
 
-    // 7. ZOOM IN
+    // 12. ZOOM IN
     if (
       text.includes('zoom in') ||
       text.includes('closer') ||
-      text.includes('magnify') ||
-      text.includes('inspect')
+      text.includes('magnify')
     ) {
-      inputController.addZoom(0.35, 'mouse')
-      templeAudio.playTempleBell()
-      setLastVoiceCommand('Zoom In')
-      showActionFeedback('✓ ZOOMED IN (+0.35x)')
-      return
+      return tryExecute('zoom-in', 350, () => {
+        inputController.addZoom(0.35, 'mouse')
+        templeAudio.playTempleBell()
+        setLastVoiceCommand('Zoom In')
+        showActionFeedback('✓ ZOOMED IN (+0.35x)')
+      })
     }
 
-    // 8. ZOOM OUT
+    // 13. ZOOM OUT
     if (
       text.includes('zoom out') ||
       text.includes('zoom back') ||
       text.includes('wider') ||
       text.includes('zoom away')
     ) {
-      inputController.addZoom(-0.35, 'mouse')
-      templeAudio.playTempleBell()
-      setLastVoiceCommand('Zoom Out')
-      showActionFeedback('✓ ZOOMED OUT (-0.35x)')
-      return
+      return tryExecute('zoom-out', 350, () => {
+        inputController.addZoom(-0.35, 'mouse')
+        templeAudio.playTempleBell()
+        setLastVoiceCommand('Zoom Out')
+        showActionFeedback('✓ ZOOMED OUT (-0.35x)')
+      })
     }
 
-    // 9. RESET ZOOM
+    // 14. RESET ZOOM
     if (text.includes('reset zoom') || text.includes('normal zoom') || text.includes('default zoom')) {
-      store.setZoomFactor(1.0)
-      templeAudio.playTempleBell()
-      setLastVoiceCommand('Reset Zoom')
-      showActionFeedback('✓ RESET ZOOM TO 1.0x')
-      return
+      return tryExecute('reset-zoom', 800, () => {
+        store.setZoomFactor(1.0)
+        templeAudio.playTempleBell()
+        setLastVoiceCommand('Reset Zoom')
+        showActionFeedback('✓ RESET ZOOM TO 1.0x')
+      })
     }
 
-    // 10. PAUSE / STOP / HOLD
+    // 15. PAUSE / STOP / HOLD
     if (
       text.includes('stop') ||
       text.includes('pause') ||
       text.includes('hold') ||
       text.includes('freeze')
     ) {
-      if (!store.isPaused) {
-        store.togglePause()
-        templeAudio.playTempleBell()
-        setLastVoiceCommand('Pause')
-        showActionFeedback('✓ PAUSED CINEMATIC MOTION')
-      }
-      return
+      return tryExecute('pause', 800, () => {
+        if (!store.isPaused) {
+          store.togglePause()
+          templeAudio.playTempleBell()
+          setLastVoiceCommand('Pause')
+          showActionFeedback('✓ PAUSED CINEMATIC MOTION')
+        }
+      })
     }
 
-    // 11. PLAY / RESUME
+    // 16. PLAY / RESUME
     if (
       text.includes('play') ||
       text.includes('resume') ||
       text.includes('continue') ||
       text.includes('start')
     ) {
-      if (store.isPaused) {
-        store.togglePause()
-        templeAudio.playTempleBell()
-        setLastVoiceCommand('Resume')
-        showActionFeedback('✓ RESUMED CINEMATIC MOTION')
-      }
-      return
+      return tryExecute('resume', 800, () => {
+        if (store.isPaused) {
+          store.togglePause()
+          templeAudio.playTempleBell()
+          setLastVoiceCommand('Resume')
+          showActionFeedback('✓ RESUMED CINEMATIC MOTION')
+        }
+      })
     }
 
-    // 12. CHAPTER JUMPS
+    // 17. CHAPTER JUMPS
     if (text.includes('entrance') || text.includes('gateway') || text.includes('gopuram')) {
-      store.jumpToSection(0)
-      templeAudio.playTempleBell()
-      setLastVoiceCommand('Entrance Gopuram')
-      showActionFeedback('✓ JUMPED TO: Keralantakan Gopuram')
-      return
+      return tryExecute('chap-entrance', 1200, () => {
+        store.jumpToSection(0)
+        templeAudio.playTempleBell()
+        setLastVoiceCommand('Entrance Gopuram')
+        showActionFeedback('✓ JUMPED TO: Keralantakan Gopuram')
+      })
     }
 
     if (text.includes('approach') || text.includes('courtyard')) {
-      store.jumpToSection(1)
-      templeAudio.playTempleBell()
-      setLastVoiceCommand('Sacred Approach')
-      showActionFeedback('✓ JUMPED TO: Sacred Approach')
-      return
-    }
-
-    if (text.includes('vimana') || text.includes('tower') || text.includes('shikhara')) {
-      store.jumpToSection(2)
-      templeAudio.playTempleBell()
-      setLastVoiceCommand('Celestial Vimana')
-      showActionFeedback('✓ JUMPED TO: Celestial Vimana')
-      return
+      return tryExecute('chap-approach', 1200, () => {
+        store.jumpToSection(1)
+        templeAudio.playTempleBell()
+        setLastVoiceCommand('Sacred Approach')
+        showActionFeedback('✓ JUMPED TO: Sacred Approach')
+      })
     }
 
     if (text.includes('mantra') || text.includes('chant') || text.includes('tryambakam')) {
-      if (store.isAudioMuted) {
-        store.toggleAudio()
-      }
-      store.jumpToSection(4)
-      templeAudio.playTempleBell()
-      setLastVoiceCommand('Maha Mrityunjaya Mantra')
-      showActionFeedback('✓ PLAYING SACRED MANTRA AT LINGAM')
-      return
-    }
-
-    if (text.includes('sanctum') || text.includes('lingam') || text.includes('garbhagriha')) {
-      store.jumpToSection(4)
-      templeAudio.playTempleBell()
-      setLastVoiceCommand('Sanctum Lingam')
-      showActionFeedback('✓ JUMPED TO: Garbhagriha Sanctum')
-      return
-    }
-
-    if (text.includes('nandi') || text.includes('bull')) {
-      store.jumpToSection(5)
-      templeAudio.playTempleBell()
-      setLastVoiceCommand('Nandi Mandapam')
-      showActionFeedback('✓ JUMPED TO: Monolithic Nandi')
-      return
-    }
-
-    if (
-      text.includes('kodimaram') ||
-      text.includes('kodi maram') ||
-      text.includes('flag') ||
-      text.includes('dhwaja') ||
-      text.includes('stambha') ||
-      text.includes('bali')
-    ) {
-      store.activateHotspot('kodimaram')
-      templeAudio.playTempleBell()
-      setLastVoiceCommand('Kodimaram Flag Mast')
-      showActionFeedback('✓ FOCUSING: Kodimaram & Bali Peetham')
-      return
+      return tryExecute('chant', 1500, () => {
+        if (store.isAudioMuted) {
+          store.toggleAudio()
+        }
+        store.jumpToSection(4)
+        templeAudio.playTempleBell()
+        setLastVoiceCommand('Maha Mrityunjaya Mantra')
+        showActionFeedback('✓ PLAYING SACRED MANTRA AT LINGAM')
+      })
     }
 
     if (text.includes('timeline') || text.includes('history')) {
-      useExperienceStore.setState((s) => ({ isTimelineOpen: !s.isTimelineOpen }))
-      templeAudio.playTempleBell()
-      setLastVoiceCommand('Timeline')
-      showActionFeedback('✓ TOGGLED HISTORICAL TIMELINE')
-      return
-    }
-
-    if (text.includes('gallery') || text.includes('photo') || text.includes('picture')) {
-      store.openPhotoModal({
-        title: 'Peruvudaiyar Maha Lingam & Sacred Sanctum',
-        tamilTitle: 'பெரியவுடையார் மகாலிங்கம்',
-        imageSrc: '/images/lingam.jpg',
-        caption: 'Enshrined within the sacred double-walled Garbhagriha under the soaring 66-meter Sri Vimana.',
-        details:
-          'Concurring with classical Agama shastras, the 13-foot monolithic black granite Lingam rests on a 54-foot circumference Avudaiyar.',
-        galleryImages: [
-          '/images/lingam.jpg',
-          '/images/temple/entrance.jpg',
-          '/images/temple/nandhi-sideview.jpg',
-          '/images/temple/nandhi-backsideview.jpg',
-          '/images/temple/side-view.webp',
-          '/images/temple/right-sideview.webp',
-          '/images/temple/gopuram-sideview.webp',
-          '/images/temple/gopuram-backsideview.webp',
-        ],
+      return tryExecute('timeline', 1200, () => {
+        useExperienceStore.setState((s) => ({ isTimelineOpen: !s.isTimelineOpen }))
+        templeAudio.playTempleBell()
+        setLastVoiceCommand('Timeline')
+        showActionFeedback('✓ TOGGLED HISTORICAL TIMELINE')
       })
-      templeAudio.playTempleBell()
-      setLastVoiceCommand('Gallery')
-      showActionFeedback('✓ OPENED ARCHAEOLOGICAL GALLERY')
-      return
     }
 
     if (text.includes('close') || text.includes('dismiss') || text.includes('exit')) {
-      store.closePhotoModal()
-      useExperienceStore.setState({ isTimelineOpen: false, showVoiceHelp: false })
-      showActionFeedback('✓ DISMISSED MODALS')
-      return
+      return tryExecute('dismiss', 600, () => {
+        store.closePhotoModal()
+        useExperienceStore.setState({ isTimelineOpen: false, showVoiceHelp: false })
+        showActionFeedback('✓ DISMISSED MODALS')
+      })
     }
 
     if (text.includes('audio') || text.includes('sound') || text.includes('music') || text.includes('mute')) {
-      store.toggleAudio()
-      setLastVoiceCommand('Audio Toggle')
-      showActionFeedback('✓ TOGGLED TEMPLE AUDIO')
-      return
+      return tryExecute('audio', 800, () => {
+        store.toggleAudio()
+        setLastVoiceCommand('Audio Toggle')
+        showActionFeedback('✓ TOGGLED TEMPLE AUDIO')
+      })
     }
 
     if (text.includes('help') || text.includes('commands')) {
-      store.setShowVoiceHelp(true)
-      showActionFeedback('✓ DISPLAYING VOICE COMMANDS')
-      return
+      return tryExecute('help', 1200, () => {
+        store.setShowVoiceHelp(true)
+        showActionFeedback('✓ DISPLAYING VOICE COMMANDS')
+      })
     }
 
-    // Unrecognized speech
-    setLastVoiceCommand(null)
-    showActionFeedback(`Hearing: "${text}" (say "help" for commands)`)
+    // Only display hearing prompt if final utterance was not recognized
+    if (isFinal) {
+      setLastVoiceCommand(null)
+      showActionFeedback(`Hearing: "${text}" (say "help" for commands)`)
+    }
   }, [setVoiceTranscript, setLastVoiceCommand, showActionFeedback])
 
-  // Initialize Speech Recognition
+  // Initialize Speech Recognition with low-latency interim results
   useEffect(() => {
     const SpeechRecognition =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
@@ -341,9 +494,9 @@ export const VoiceController: React.FC = () => {
     try {
       const recognition = new SpeechRecognition()
       recognition.continuous = true
-      recognition.interimResults = false
+      recognition.interimResults = true
       recognition.lang = 'en-US'
-      recognition.maxAlternatives = 2
+      recognition.maxAlternatives = 1
 
       recognition.onstart = () => {
         if (!isCancelled) {
@@ -354,11 +507,12 @@ export const VoiceController: React.FC = () => {
 
       recognition.onresult = (event: any) => {
         if (isCancelled) return
-        const lastIdx = event.results.length - 1
-        const result = event.results[lastIdx]
-        if (result && result.isFinal) {
-          const transcript = result[0].transcript
-          processVoiceCommand(transcript)
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          const res = event.results[i]
+          if (res && res[0]) {
+            const transcript = res[0].transcript
+            processVoiceCommand(transcript, res.isFinal)
+          }
         }
       }
 
@@ -372,15 +526,21 @@ export const VoiceController: React.FC = () => {
       }
 
       recognition.onend = () => {
-        // Auto-restart if voice is still enabled
+        setVoiceListening(false)
+        if (restartTimeoutRef.current) {
+          clearTimeout(restartTimeoutRef.current)
+        }
+        // Auto-restart cleanly if voice is still enabled
         if (!isCancelled && useExperienceStore.getState().isVoiceEnabled) {
-          try {
-            recognition.start()
-          } catch {
-            // Already active or error
-          }
-        } else {
-          setVoiceListening(false)
+          restartTimeoutRef.current = window.setTimeout(() => {
+            if (!isCancelled && useExperienceStore.getState().isVoiceEnabled) {
+              try {
+                recognition.start()
+              } catch {
+                // Ignore already started error
+              }
+            }
+          }, 250)
         }
       }
 
@@ -392,6 +552,9 @@ export const VoiceController: React.FC = () => {
 
     return () => {
       isCancelled = true
+      if (restartTimeoutRef.current) {
+        clearTimeout(restartTimeoutRef.current)
+      }
       if (recognitionRef.current) {
         try {
           recognitionRef.current.abort()

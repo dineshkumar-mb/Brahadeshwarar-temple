@@ -10,15 +10,16 @@ export interface ConfigurableGestureConstants {
   handDetectionTimeoutMs: number
 }
 
+
 export const GESTURE_CONFIG: ConfigurableGestureConstants = {
-  gestureSensitivity: 2.5,
-  deadZoneY: 0.002, // Ultra-fine threshold paired with 1-Euro adaptive filter
-  deadZoneX: 0.002,
-  smoothingFactor: 0.35,
-  maxCameraVelocity: 0.08,
-  pinchThreshold: 0.09,
-  pinchReleaseThreshold: 0.13,
-  swipeVelocityThreshold: 0.60,
+  gestureSensitivity: 1.5, // Tuned for silky-smooth cinematic precision (prevents rapid overshooting)
+  deadZoneY: 0.0015,       // Ultra-fine threshold paired with 1-Euro adaptive filter
+  deadZoneX: 0.0015,
+  smoothingFactor: 0.28,
+  maxCameraVelocity: 0.05,
+  pinchThreshold: 0.085,
+  pinchReleaseThreshold: 0.125,
+  swipeVelocityThreshold: 0.55,
   handDetectionTimeoutMs: 500,
 }
 
@@ -42,7 +43,7 @@ export class OneEuroScalar {
   private dxPrev = 0
   private tPrev: number | null = null
 
-  constructor(minCutoff = 1.5, beta = 0.08, dCutoff = 1.0) {
+  constructor(minCutoff = 1.0, beta = 0.20, dCutoff = 1.0) {
     this.minCutoff = minCutoff
     this.beta = beta
     this.dCutoff = dCutoff
@@ -101,9 +102,9 @@ export class LandmarkSmoother {
 
     // Initialize filters for each landmark if needed
     while (this.filtersX.length < raw.length) {
-      this.filtersX.push(new OneEuroScalar(1.4, 0.06, 1.0))
-      this.filtersY.push(new OneEuroScalar(1.4, 0.06, 1.0))
-      this.filtersZ.push(new OneEuroScalar(1.4, 0.06, 1.0))
+      this.filtersX.push(new OneEuroScalar(1.0, 0.20, 1.0))
+      this.filtersY.push(new OneEuroScalar(1.0, 0.20, 1.0))
+      this.filtersZ.push(new OneEuroScalar(1.0, 0.20, 1.0))
     }
 
     this.smoothedLandmarks = raw.map((pt, i) => ({

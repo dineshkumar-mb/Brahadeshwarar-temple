@@ -1,4 +1,4 @@
-import { HotspotItem } from '../state/experienceStore'
+import { HotspotItem, PhotoModalData } from '../state/experienceStore'
 
 export interface TimelineEvent {
   year: string
@@ -8,6 +8,139 @@ export interface TimelineEvent {
   description: string
   significance: string
   imageRef?: string
+}
+
+/**
+ * Complete Master Catalog of Authentic Archaeological Photographs
+ * Every photo contains historical metadata, Tamil epigraphy title, category, and curatorial insight.
+ */
+export const ARCHAEOLOGICAL_GALLERY: PhotoModalData[] = [
+  {
+    imageSrc: '/images/lingam.jpg',
+    title: 'Peruvudaiyar Maha Lingam & Sacred Sanctum',
+    tamilTitle: 'பெரியவுடையார் மகாலிங்கம் (கர்ப்பக்கிருகம்)',
+    category: 'Garbhagriha Sanctum',
+    caption: 'Enshrined within the sacred double-walled granite Garbhagriha under the soaring 66-meter Sri Vimana.',
+    details:
+      'Consecrated in 1010 CE as Adavallan (The Master of Sacred Dance) and Dakshina Meru Vitankan by Emperor Rajaraja I. This 13-foot monolithic black granite Lingam rests upon a circular 54-foot circumference Avudaiyar (Yoni-pitha), attended by continuous daily aarti and bronze deepams for over a millennium.',
+  },
+  {
+    imageSrc: '/images/temple/entrance.jpg',
+    title: 'Keralantakan Rajagopuram Entrance',
+    tamilTitle: 'கேரளாந்தகன் திருவாயில்',
+    category: 'Monumental Gateway',
+    caption: 'The imposing 5-storey eastern gateway guarding the entrance to the sacred temple complex.',
+    details:
+      'Commissioned by Rajaraja I to celebrate his military triumph at Kandalur Salai. Built entirely of finely chiseled Thanjavur granite and guarded by colossal monolithic Dvarapala gatekeepers holding sacred clubs.',
+  },
+  {
+    imageSrc: '/images/temple/entrance.webp',
+    title: 'Inner Courtyard & Cosmic Axial Pathway',
+    tamilTitle: 'கோயில் திருச்சுற்று நடைபாதை',
+    category: 'Sacred Axial Courtyard',
+    caption: 'The vast granite flagstone courtyard stretching from the Rajagopuram towards the Nandi Mandapam.',
+    details:
+      'A majestic 240-meter East-West axis aligned with the solar equinox. The vast open courtyard is enclosed by perimeter cloisters that once housed 400 consecrated temple dancers (Tali-cheri pendugal) and musicians.',
+  },
+  {
+    imageSrc: '/kodimaram.jpg',
+    title: 'Kodimaram (Dhwajasthambham) & Bali Peetham',
+    tamilTitle: 'கொடிமரம் & பலிபீடம்',
+    category: 'Sacred Flag Mast & Cosmic Axis',
+    caption: 'A towering 16-meter gilded brass flagmast with 33 rings and stepped granite Bali Peetham offering altar.',
+    details:
+      'Standing proudly along the central East-West cosmic axis between the Rajagopuram and Nandi Mandapam. Symbolizes the human spine (Sushumna Nadi) with its 33 segmented brass rings representing the vertebrae and states of consciousness. Surmounted by cross-arms (Yasti), brass bells, a fluttering saffron Chola Rishabha flag, and golden Kalasam pinnacle.',
+  },
+  {
+    imageSrc: '/images/temple/nandhi-sideview.jpg',
+    title: 'Monolithic Nandi Bull (Lateral Profile)',
+    tamilTitle: 'மகா நந்தி மூர்த்தி (பக்கவாட்டுக் காட்சி)',
+    category: 'Sacred Monolith',
+    caption: 'A colossal 25-tonne monolithic black granite Nandi (12 ft high, 19.5 ft long) facing the inner sanctum.',
+    details:
+      'Carved from a single massive boulder of deep greenish-black granite, this colossal Nandi is adorned with intricately sculpted brass bell necklaces, floral malas, and harness ropes beneath a 16th-century Nayak-period hypostyle mandapa.',
+  },
+  {
+    imageSrc: '/images/temple/nandhi-backsideview.jpg',
+    title: 'Nandi Mandapam Painted Ceilings & Yali Columns',
+    tamilTitle: 'நந்தி மண்டப மேற்கூரை ஓவியங்கள்',
+    category: 'Nayak-Period Murals',
+    caption: 'Intricate 16th-century celestial fresco murals and carved composite Yali capitals above the great Nandi.',
+    details:
+      'The underside of the Nandi Mandapa ceiling is covered with polychromatic frescoes depicting floral mandalas, celestial dancers, and Shiva legends painted using natural lapis lazuli blue, gold leaf, and cinnabar vermilion.',
+  },
+  {
+    imageSrc: '/images/temple/side-view.webp',
+    title: 'Sri Vimana & Axial Halls Panoramic Profile',
+    tamilTitle: 'ஸ்ரீ விமானம் பக்கவாட்டுக் காட்சி',
+    category: 'Dravidian Pyramidal Architecture',
+    caption: '13 stepped pyramidal tiers rising 216 feet (66m), engineered with hollow corbelling and dry-stone masonry.',
+    details:
+      'Referred to in Chola inscriptions as Dakshina Meru. Renowned for the shadow phenomenon: during solar noon (especially May–July when the tropical sun is directly overhead), the shadow of the tapering 66m tower shrinks and falls directly upon its own massive Upapitha base plinth, making it appear to vanish from ground viewing angles. The legend also draws from master architect Kunjaramallan Perunthachan’s poetic promise to King Rajaraja Chola: "Even its shadow will not fall, Raja!"—vowing the temple would never fall from grace or ruin.',
+  },
+  {
+    imageSrc: '/images/temple/tamil-inscriptions-plinth.jpg',
+    title: 'Thanjavur Brihadisvara Plinth Epigraphy (1010 CE)',
+    tamilTitle: 'முதலாம் இராஜராஜ சோழன் அதிஷ்டான கல்வெட்டு',
+    category: 'Imperial Chola Epigraphy',
+    caption: 'The legendary 1000-year-old Tamil script chiseled into the multi-tiered Upapitha granite plinth.',
+    details:
+      'Begins with the immortal Chola Meikeerthi: "திருமகள் போல பெருநிலச் செல்வியும் தநக்கே உரிமை பூண்டமை மனக்கொள..." (Thirumagal pola perunila chelviyum). Decreed by Emperor Rajaraja I to permanently record every gift, the names of 400 court dancers (Tali-cheri pendugal), royal jewelers, and the master architect Kunjara Mallan Raja Raja Perunthachan.',
+  },
+  {
+    imageSrc: '/images/temple/tamil-inscriptions-detail.jpg',
+    title: 'Old Tamil & Grantha Chiseled Script Detail',
+    tamilTitle: 'பழங்காலத் தமிழ் மற்றும் கிரந்த எழுத்துக்கள்',
+    category: 'Epigraphical Paleography',
+    caption: 'High-magnification view showing the flawless chisel marks and deep V-cut letterforms on hard crystalline granite.',
+    details:
+      'Demonstrates the pinnacle of classical Chola stone epigraphy. Engraved in eleventh-century Tamil script with Grantha ligatures for sacred Sanskrit terminology, maintaining pristine legibility despite a millennium of monsoons and tropical weathering.',
+  },
+  {
+    imageSrc: '/images/temple/tamil-inscriptions-wall.jpg',
+    title: 'Garbhagriha Exterior Wall Inscriptions & Jointing',
+    tamilTitle: 'கருவறை வெளிப்புறச் சுவர் கல்வெட்டுகள்',
+    category: 'Dry-Stone Interlocking Masonry',
+    caption: 'Continuous lines of historical inscriptions traversing precision-dressed interlocking granite ashlar masonry.',
+    details:
+      'Illustrates how Chola scribes carved continuous lines of royal edicts across multi-ton interlocking granite blocks without mortar, showcasing the micron-level stone dressing achieved by 11th-century Tamil masons.',
+  },
+  {
+    imageSrc: '/images/temple/gopuram-sideview.webp',
+    title: 'Ardhamandapa Hypostyle Halls & Dance Karanas',
+    tamilTitle: 'அர்த்த மண்டபத் தூண்கள் & நடனக் கரணங்கள்',
+    category: 'Hypostyle Columned Halls',
+    caption: 'Monumental assembly halls featuring heavy monolithic pillars carved with geometric motifs and classical dance postures.',
+    details:
+      'Inside the surrounding corridor walls, master Chola artisans carved 81 of the 108 sacred classical dance karanas described in Bharata Muni Natya Shastra, immortalizing the roots of classical Bharatanatyam.',
+  },
+  {
+    imageSrc: '/images/temple/gopuram-backsideview.webp',
+    title: 'Perimeter Cloisters & Western Cloister Shrines',
+    tamilTitle: 'மேற்குத் திருச்சுற்று மாளிகை',
+    category: 'Perimeter Cloisters',
+    caption: 'Double-layered enclosure wall and colonnaded cloisters housing subsidiary shrines and 252 stone Lingams.',
+    details:
+      'Enclosing the monumental courtyard, these covered cloisters feature centuries of stone epigraphy, the ornate Subrahmanya shrine (a masterpiece of late Nayak stonework), and historical Marathi inscriptions from the Thanjavur Maratha court.',
+  },
+]
+
+/**
+ * Helper to retrieve rich metadata for any image path in the gallery
+ */
+export function getGalleryPhotoMeta(src: string, fallback?: Partial<PhotoModalData>): PhotoModalData {
+  const match = ARCHAEOLOGICAL_GALLERY.find((p) => p.imageSrc === src)
+  if (match) return match
+
+  return {
+    title: fallback?.title || 'Brihadisvara Architectural Detail',
+    tamilTitle: fallback?.tamilTitle || 'தஞ்சைப் பெரிய கோயில்',
+    category: fallback?.category || 'Architectural Photography',
+    imageSrc: src,
+    caption: fallback?.caption || 'Authentic architectural perspective of the Brihadisvara Temple complex.',
+    details: fallback?.details || 'Dating to 1010 CE under Emperor Rajaraja Chola I, designated as a UNESCO World Heritage monument.',
+    galleryImages: fallback?.galleryImages,
+  }
 }
 
 export const TEMPLE_HOTSPOTS: HotspotItem[] = [
@@ -23,32 +156,53 @@ export const TEMPLE_HOTSPOTS: HotspotItem[] = [
     cameraTarget: [0, 54.0, -25],
     cameraPos: [-14, 58.0, -12],
     imageRef: '/images/temple/side-view.webp',
+    galleryImages: [
+      '/images/temple/side-view.webp',
+      '/images/temple/right-sideview.webp',
+      '/images/temple/entrance.jpg',
+      '/kodimaram.jpg',
+      '/images/temple/tamil-inscriptions-plinth.jpg',
+    ],
   },
   {
     id: 'vimana',
     title: 'Sri Vimana (Dakshina Meru)',
     tamilTitle: 'ஸ்ரீ விமானம் (தக்ஷிண மேரு)',
     category: 'The Great Tower',
-    shortDesc: '13 stepped pyramidal tiers rising 216 feet (66m), engineered with hollow corbelling.',
+    shortDesc: '13 stepped pyramidal tiers rising 216 feet (66m). High-noon optical shadow phenomenon.',
     historicalContext:
-      'Referred to in inscriptions as Dakshina Meru (the southern cosmic mountain), the tower is constructed entirely of interlocking granite blocks without any binding mortar. Its stepped pyramid geometry symbolizes Mount Meru.',
+      'The famous legend that the Sri Vimana casts no shadow at ground level is a mix of architectural optical physics and a historic poetic promise. The wide Upapitha base is significantly broader than the tapering 13-tier spire, so during high solar noon (particularly May to July when the sun aligns near zenith in Thanjavur), the shadow contracts and falls neatly within the footprint of the massive stone base. When King Rajaraja Chola asked master builder Kunjaramallan Raja Raja Perunthachan if the colossal tower was stable, the architect poetically declared: "Even its shadow will not fall, Raja!" (நிழலும் சாயாது அரசே!)—promising it would never fall into ruin.',
     position: [0, 32.0, -25],
     cameraTarget: [0, 30.0, -25],
     cameraPos: [18, 16.0, -2],
     imageRef: '/images/temple/right-sideview.webp',
+    galleryImages: [
+      '/images/temple/right-sideview.webp',
+      '/images/temple/side-view.webp',
+      '/images/temple/gopuram-sideview.webp',
+      '/images/temple/gopuram-backsideview.webp',
+      '/images/temple/tamil-inscriptions-wall.jpg',
+    ],
   },
   {
     id: 'inscriptions',
     title: 'Royal Epigraphy & Inscriptions',
-    tamilTitle: 'கல்வெட்டுகள்',
-    category: 'Historical Record',
-    shortDesc: 'Meticulously chiseled Tamil and Grantha inscriptions covering the granite plinth.',
+    tamilTitle: 'கல்வெட்டுகள் (இராஜராஜ சோழன் மெய்க்கீர்த்தி)',
+    category: 'Imperial Chola Epigraphy',
+    shortDesc: 'Meticulously chiseled 1000-year-old Old Tamil and Grantha inscriptions covering the granite plinth.',
     historicalContext:
-      'Rajaraja I decreed that every single donation—from crowns of gold and pearls down to individual brass spoons—be permanently inscribed on the temple walls. Inscriptions also record the names of 400 temple dancers (Tali-cheri pendugal), musicians, accountants, and master architect Kunjara Mallan Raja Raja Perunthachan.',
+      'Emperor Rajaraja I decreed that every single donation—from crowns of gold and 9-gem jewels down to brass betel-nut scissors—be permanently chiseled on the temple plinth. The inscriptions immortalize the names of 400 court dancers (Tali-cheri pendugal), musicians, singers, accountants, and master architect Kunjara Mallan Raja Raja Perunthachan.',
     position: [-16.0, 3.8, -25],
-    cameraTarget: [-15.0, 3.5, -25],
-    cameraPos: [-22.0, 5.0, -22],
-    imageRef: '/images/temple/right-sideview.webp',
+    cameraTarget: [-15.2, 3.2, -25.0],
+    cameraPos: [-20.5, 4.2, -21.5],
+    imageRef: '/images/temple/tamil-inscriptions-plinth.jpg',
+    galleryImages: [
+      '/images/temple/tamil-inscriptions-plinth.jpg',
+      '/images/temple/tamil-inscriptions-detail.jpg',
+      '/images/temple/tamil-inscriptions-wall.jpg',
+      '/images/temple/right-sideview.webp',
+      '/images/temple/side-view.webp',
+    ],
   },
   {
     id: 'kodimaram',
@@ -85,6 +239,7 @@ export const TEMPLE_HOTSPOTS: HotspotItem[] = [
       '/images/temple/nandhi-sideview.jpg',
       '/images/temple/nandhi-backsideview.jpg',
       '/images/temple/gopuram-backsideview.webp',
+      '/kodimaram.jpg',
     ],
   },
   {
@@ -103,6 +258,7 @@ export const TEMPLE_HOTSPOTS: HotspotItem[] = [
       '/images/lingam.jpg',
       '/images/temple/right-sideview.webp',
       '/images/temple/side-view.webp',
+      '/images/temple/entrance.jpg',
     ],
   },
   {
@@ -120,6 +276,7 @@ export const TEMPLE_HOTSPOTS: HotspotItem[] = [
     galleryImages: [
       '/images/temple/nandhi-backsideview.jpg',
       '/images/temple/nandhi-sideview.jpg',
+      '/images/temple/gopuram-sideview.webp',
     ],
   },
   {
@@ -139,6 +296,7 @@ export const TEMPLE_HOTSPOTS: HotspotItem[] = [
       '/images/temple/entrance.webp',
       '/images/temple/gopuram-sideview.webp',
       '/images/temple/gopuram-backsideview.webp',
+      '/kodimaram.jpg',
     ],
   },
   {
@@ -153,6 +311,12 @@ export const TEMPLE_HOTSPOTS: HotspotItem[] = [
     cameraTarget: [0, 6.0, 15],
     cameraPos: [22.0, 8.5, 15],
     imageRef: '/images/temple/gopuram-sideview.webp',
+    galleryImages: [
+      '/images/temple/gopuram-sideview.webp',
+      '/images/temple/gopuram-backsideview.webp',
+      '/images/temple/side-view.webp',
+      '/images/temple/right-sideview.webp',
+    ],
   },
 ]
 
@@ -173,7 +337,7 @@ export const TIMELINE_EVENTS: TimelineEvent[] = [
     title: 'Seven Years of Sacred Engineering',
     tamilTitle: 'கோயில் கட்டுமானம்',
     description:
-      'Rajaraja I commissions the Peruvudaiyar Kovil (Brihadisvara). Master builder Kunjara Mallan Raja Raja Perunthachan oversees thousands of stone masons, artisans, and elephant battalions transporting 130,000 tonnes of granite across 50 km.',
+      'Rajaraja I commissions the Peruvudaiyar Kovil (Brihadisvara). Master builder Kunjaramallan Raja Raja Perunthachan oversees thousands of stone masons, artisans, and elephant battalions transporting 130,000 tonnes of granite across 50 km. When asked by the Emperor about the towering Vimana’s eternal stability, Perunthachan poetically promised: "Even its shadow will not fall, Raja!" (நிழலும் சாயாது அரசே!).',
     significance: 'Completed on the 275th day of Rajaraja 25th regnal year (1010 CE).',
     imageRef: '/images/temple/side-view.webp',
   },

@@ -31,6 +31,7 @@ export interface HotspotItem {
 export interface PhotoModalData {
   title: string
   tamilTitle?: string
+  category?: string
   imageSrc: string
   caption: string
   details: string
@@ -146,6 +147,7 @@ interface ExperienceState {
   
   openPhotoModal: (data: PhotoModalData) => void
   closePhotoModal: () => void
+  navigatePhotoModal: (direction: 1 | -1) => void
   
   setInputMode: (mode: 'hand' | 'mouse' | 'touch' | 'keyboard') => void
   setPermissionDenied: (denied: boolean) => void
@@ -155,6 +157,7 @@ interface ExperienceState {
   toggleAudio: () => void
   setIsMantraActive: (active: boolean) => void
   toggleTimeOfDay: () => void
+  setTimeOfDay: (time: 'day' | 'night') => void
   setWebglFailed: (failed: boolean) => void
   setModelPath: (path: string) => void
   setModelBounds: (bounds: {
@@ -345,6 +348,21 @@ export const useExperienceStore = create<ExperienceState>((set, get) => ({
 
   openPhotoModal: (data) => set({ activePhotoModal: data }),
   closePhotoModal: () => set({ activePhotoModal: null }),
+  navigatePhotoModal: (direction) => {
+    const current = get().activePhotoModal
+    if (!current || !current.galleryImages || current.galleryImages.length <= 1) return
+    const images = current.galleryImages
+    const currentIdx = images.indexOf(current.imageSrc)
+    const validIdx = currentIdx >= 0 ? currentIdx : 0
+    const nextIdx = (validIdx + direction + images.length) % images.length
+    const nextImg = images[nextIdx]
+    set({
+      activePhotoModal: {
+        ...current,
+        imageSrc: nextImg,
+      },
+    })
+  },
 
   setInputMode: (mode) => set({ inputMode: mode }),
   setPermissionDenied: (denied) => set({ permissionDenied: denied }),
@@ -354,6 +372,7 @@ export const useExperienceStore = create<ExperienceState>((set, get) => ({
   toggleAudio: () => set((state) => ({ isAudioMuted: !state.isAudioMuted })),
   setIsMantraActive: (active) => set({ isMantraActive: active }),
   toggleTimeOfDay: () => set((state) => ({ timeOfDay: state.timeOfDay === 'day' ? 'night' : 'day' })),
+  setTimeOfDay: (time) => set({ timeOfDay: time }),
   setWebglFailed: (failed) => set({ webglFailed: failed }),
   setModelPath: (path) => set({ modelPath: path }),
   setModelBounds: (bounds) => set({ modelBounds: bounds }),

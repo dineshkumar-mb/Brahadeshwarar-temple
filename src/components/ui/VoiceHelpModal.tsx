@@ -11,6 +11,10 @@ import {
   Camera,
   Volume2,
   Sparkles,
+  Sun,
+  Moon,
+  Hand,
+  Maximize2,
 } from 'lucide-react'
 
 export const VoiceHelpModal: React.FC = () => {
@@ -20,6 +24,25 @@ export const VoiceHelpModal: React.FC = () => {
   if (!showHelp) return null
 
   const categories = [
+    {
+      title: 'Solar & Lunar Sky Illumination',
+      icon: <Sun className="w-4 h-4 text-amber-400" />,
+      commands: [
+        { phrase: '"Day" / "Sun" / "Sunlight"', action: 'Calibrated 5400K golden morning sunlight with long shadows' },
+        { phrase: '"Night" / "Moon" / "Moonlight"', action: 'Silvery moonlight, Pleiades star cluster & glowing deepams' },
+        { phrase: '"Toggle Lighting" / "Switch Light"', action: 'Toggles between sacred morning and midnight illumination' },
+      ],
+    },
+    {
+      title: 'Archaeological Photo Archive',
+      icon: <Camera className="w-4 h-4 text-purple-400" />,
+      commands: [
+        { phrase: '"Gallery" / "Photos" / "Archive"', action: 'Opens curated 10-image authentic archaeological gallery' },
+        { phrase: '"Next Photo" / "Next Image"', action: 'Advances to next photograph with historical notes' },
+        { phrase: '"Previous Photo" / "Prev Image"', action: 'Cycles back to previous photograph' },
+        { phrase: '"Close" / "Exit"', action: 'Dismisses active photo modal or timeline' },
+      ],
+    },
     {
       title: 'Navigation & Sacred Journey',
       icon: <Compass className="w-4 h-4 text-amber-400" />,
@@ -31,44 +54,45 @@ export const VoiceHelpModal: React.FC = () => {
       ],
     },
     {
-      title: 'Camera Orbit & Rotation',
+      title: 'Camera Orbit & Zoom',
       icon: <RotateCw className="w-4 h-4 text-emerald-400" />,
       commands: [
         { phrase: '"Rotate Right" / "Turn Right"', action: 'Orbits camera clockwise (+16°)' },
         { phrase: '"Rotate Left" / "Turn Left"', action: 'Orbits camera counter-clockwise (-16°)' },
         { phrase: '"Reset View" / "Center"', action: 'Resets camera rotation to natural facing' },
+        { phrase: '"Zoom In" / "Closer"', action: 'Magnifies architectural masonry & inscriptions (+0.35x)' },
+        { phrase: '"Zoom Out" / "Reset Zoom"', action: 'Zooms out or restores default 1.0x view' },
       ],
     },
     {
-      title: 'Zoom & Inspection',
-      icon: <ZoomIn className="w-4 h-4 text-sky-400" />,
+      title: 'AI Hand Motion Tracking',
+      icon: <Hand className="w-4 h-4 text-cyan-400" />,
       commands: [
-        { phrase: '"Zoom In" / "Closer"', action: 'Magnifies granite masonry & sculpture details (+0.35x)' },
-        { phrase: '"Zoom Out" / "Wider"', action: 'Zooms out for wide panoramic perspective' },
-        { phrase: '"Reset Zoom"', action: 'Restores default 1.0x camera zoom' },
+        { phrase: '"Enable Hands" / "Hand Tracking"', action: 'Activates webcam MediaPipe hand gesture controls' },
+        { phrase: '"Stop Hands" / "Disable Hands"', action: 'Powers off camera feed and hand tracking HUD' },
       ],
     },
     {
-      title: 'Sacred Landmark Milestones',
+      title: 'Sacred Hotspots & Epigraphy',
       icon: <MapPin className="w-4 h-4 text-amber-300" />,
       commands: [
-        { phrase: '"Entrance" / "Gopuram"', action: 'Jump to Keralantakan Gopuram (0%)' },
-        { phrase: '"Kodimaram" / "Flag"', action: 'Focus Kodimaram Flag Mast & Bali Peetham' },
-        { phrase: '"Approach" / "Courtyard"', action: 'Jump to Sacred Approach Pathway (15%)' },
-        { phrase: '"Vimana" / "Tower"', action: 'Jump to Soaring 66m Sri Vimana (35%)' },
-        { phrase: '"Sanctum" / "Lingam"', action: 'Jump to Garbhagriha Maha Lingam (72%)' },
-        { phrase: '"Nandi" / "Bull"', action: 'Jump to Colossal Monolithic Nandi (85%)' },
+        { phrase: '"Kumbam" / "Kalasam"', action: 'Inspects 81-ton monolithic granite apex & stupi' },
+        { phrase: '"Vimana" / "Tower"', action: 'Focuses soaring 66-meter Sri Vimana pyramid' },
+        { phrase: '"Inscriptions" / "Tamil"', action: 'Inspects Rajaraja Chola Old Tamil granite epigraphy' },
+        { phrase: '"Mandapa" / "Hall"', action: 'Inspects pillared Maha Mandapa assembly' },
+        { phrase: '"Kodimaram" / "Flag"', action: 'Focuses Kodimaram Flag Mast & Bali Peetham' },
+        { phrase: '"Nandi" / "Bull"', action: 'Inspects 20-ton monolithic Nandi pavilion' },
+        { phrase: '"Lingam" / "Sanctum"', action: 'Enters Garbhagriha to venerate Maha Lingam' },
       ],
     },
     {
-      title: 'Heritage Archive & Audio',
-      icon: <Volume2 className="w-4 h-4 text-purple-400" />,
+      title: 'Heritage Chant & System',
+      icon: <Volume2 className="w-4 h-4 text-rose-400" />,
       commands: [
-        { phrase: '"Mantra" / "Chant"', action: 'Jump to Lingam & play Maha Mrityunjaya Mantra' },
+        { phrase: '"Mantra" / "Chant"', action: 'Jump to Lingam & chants Maha Mrityunjaya Mantra' },
         { phrase: '"Timeline" / "History"', action: 'Opens Chola dynasty architectural timeline' },
-        { phrase: '"Gallery" / "Photos"', action: 'Opens archaeological real photograph archive' },
-        { phrase: '"Audio" / "Mute" / "Sound"', action: 'Toggles ambient drone & temple bells' },
-        { phrase: '"Close" / "Exit"', action: 'Dismisses open modals or detail cards' },
+        { phrase: '"Audio" / "Mute"', action: 'Toggles sacred temple bells and drone music' },
+        { phrase: '"Fullscreen"', action: 'Toggles edge-to-edge cinematic fullscreen' },
       ],
     },
   ]
